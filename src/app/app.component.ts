@@ -12,6 +12,7 @@ import {
   TileErrorEvent,
   WMSOptions,
 } from 'leaflet';
+
 import { environment } from '../environments/environment';
 
 /**
@@ -139,12 +140,29 @@ export class AppComponent implements AfterViewInit {
       )
     );
 
+
+    this.mapCollection.set(
+      'Cables',
+      L.tileLayer.wms(
+        ' https://overwatch.net:5501/geoserver/wms',
+        {
+          layers: 'vector_workspace:fiber_optic_cables',
+          opacity: 1,
+          transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
+          format: 'image/png',
+        }
+      )
+    );
+
+
+
     //https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer
 
     var overlayMaps = {
       Cities: this.mapCollection.get('cities'),
       Topo: this.mapCollection.get('topoOverlayMap'),
       NOAA1: this.mapCollection.get('NOAA1'),
+      Cables: this.mapCollection.get('Cables'),
     };
 
      L.control.layers(baseMaps, overlayMaps).addTo(this.map);
