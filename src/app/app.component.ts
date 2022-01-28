@@ -1,7 +1,17 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { Observable, Subscriber } from 'rxjs';
 import * as L from 'leaflet';
-import { bounds, LatLng, LatLngBoundsExpression, LatLngExpression, Layer, LeafletMouseEvent, Marker, TileErrorEvent, WMSOptions } from 'leaflet';
+import {
+  bounds,
+  LatLng,
+  LatLngBoundsExpression,
+  LatLngExpression,
+  Layer,
+  LeafletMouseEvent,
+  Marker,
+  TileErrorEvent,
+  WMSOptions,
+} from 'leaflet';
 import { environment } from '../environments/environment';
 
 /**
@@ -16,15 +26,15 @@ import { environment } from '../environments/environment';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements AfterViewInit {
-  map: any ;
+  map: any;
 
   lat = 26;
   lng = -81;
-  center =  L.latLng(this.lat, this.lng); // [this.lat, this.lng];
-
+  center = L.latLng(this.lat, this.lng); // [this.lat, this.lng];
+  
   overlayCollection = [];
-
-  mm = new Map();
+  
+  mapCollection = new Map();
 
   constructor() {}
 
@@ -100,14 +110,14 @@ export class AppComponent implements AfterViewInit {
       attribution: mbAttr,
     });
 
-    this.mm.set('cities', L.layerGroup([littleton, denver, aurora, bonita]));
+    this.mapCollection.set('cities', L.layerGroup([littleton, denver, aurora, bonita]));
 
     var baseMaps = {
       Grayscale: grayScaleBaseMap,
       Streets: streetsBaseMap,
     };
 
-    this.mm.set(
+    this.mapCollection.set(
       'topoOverlayMap',
       L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
         layers: 'TOPO-OSM-WMS',
@@ -116,7 +126,7 @@ export class AppComponent implements AfterViewInit {
       })
     );
 
-    this.mm.set(
+    this.mapCollection.set(
       'NOAA1',
       L.tileLayer.wms(
         ' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer',
@@ -132,12 +142,12 @@ export class AppComponent implements AfterViewInit {
     //https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer
 
     var overlayMaps = {
-      Cities: this.mm.get('cities'),
-      Topo: this.mm.get('topoOverlayMap'),
-      NOAA1: this.mm.get('NOAA1'),
+      Cities: this.mapCollection.get('cities'),
+      Topo: this.mapCollection.get('topoOverlayMap'),
+      NOAA1: this.mapCollection.get('NOAA1'),
     };
 
-    L.control.layers(baseMaps, overlayMaps).addTo(this.map);
+     L.control.layers(baseMaps, overlayMaps).addTo(this.map);
   }
 
   /**
@@ -145,11 +155,16 @@ export class AppComponent implements AfterViewInit {
    * It calls imageOverlay
    */
   public showOverlayImage() {
-    var overlayImageURL =
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Sydney_Opera_House_-_Dec_2008.jpg/1024px-Sydney_Opera_House_-_Dec_2008.jpg',
-      imageBounds = [this.center, [-35.865, 154.2094]];
-    //this.overlayCollection.push(      L.imageOverlay(imageUrl, imageBounds, {opacity: 0.5}).addTo(this.map)     );
-    this.mm.set(
+    let overlayImageURL =
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Sydney_Opera_House_-_Dec_2008.jpg/1024px-Sydney_Opera_House_-_Dec_2008.jpg';
+
+    let imageBounds = L.latLngBounds(this.center, L.latLng(-35.865, 154.2094));
+
+    // don't keep adding it id they keep whacking the button
+    if(this.isActiveLayer(this.mapCollection.get('overlay1')))
+       return;
+
+    this.mapCollection.set(
       'overlay1',
       L.imageOverlay(overlayImageURL, imageBounds, { opacity: 0.5 }).addTo(
         this.map
@@ -158,21 +173,39 @@ export class AppComponent implements AfterViewInit {
     L.imageOverlay(overlayImageURL, imageBounds).bringToFront();
   }
 
-  public dump() {
-    // for (const [key, value] of (<any>Object).entries(this.overlayCollection)) {
-    //if (key.toUpperCase() == 'POSTGISLAYER') {
-    // this.map.removeLayer(value);
-    //this.removeMapLay(key);
+  public activeLayers() {
+    this.map.eachLayer(ll => {
+       console.log(ll);
+    });
+  }
 
-    //   console.log(key)
-    //    console.log(value)
-    //}
-    for (let [key, value] of this.mm) {
-      console.log(key);
-      //console.log(value)
-      this.map.removeLayer(value);
+  public isActiveLayer(layerValue) : boolean {
+    let result = false;
+    this.map.eachLayer(ll => {  
+       if ( ll == layerValue)
+        result=true;
+    });
+    return result;
+  }
+
+  private inMapCollection(vv) : boolean
+  {
+    for (let [key, value] of this.mapCollection) {
+      if (vv == value) {
+          console.log("In the mappcollection!");
+          return true;
+      }
     }
+    return false;
+  }
 
-    // console.log(this.overlayCollection)
+  public dump(removeLayers = true) {
+
+    for (let [key, value] of this.mapCollection) {
+      console.log(key);
+      console.log(value)
+      if (removeLayers)
+          this.map.removeLayer(value);
+    }
   }
 }
