@@ -1,6 +1,7 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { Observable, Subscriber } from 'rxjs';
 import * as L from 'leaflet';
+import { bounds, LatLng, LatLngBoundsExpression, LatLngExpression, Layer, LeafletMouseEvent, Marker, TileErrorEvent, WMSOptions } from 'leaflet';
 import { environment } from '../environments/environment';
 
 /**
@@ -15,11 +16,11 @@ import { environment } from '../environments/environment';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements AfterViewInit {
-  map: any;
+  map: any ;
 
   lat = 26;
   lng = -81;
-  center = [this.lat, this.lng];
+  center =  L.latLng(this.lat, this.lng); // [this.lat, this.lng];
 
   overlayCollection = [];
 
@@ -65,19 +66,18 @@ export class AppComponent implements AfterViewInit {
   private loadMap(): void {
     this.map = L.map('map').setView([0, 0], 1);
 
-
     var mbAttr =
       'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
 
-      var mbUrl =
+    var mbUrl =
       'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
 
-   //  var mbUrl =     'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
+    //  var mbUrl =     'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
 
     var streetsBaseMap = L.tileLayer(
       'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
       {
-        attribution:mbAttr,
+        attribution: mbAttr,
         maxZoom: 18,
         id: 'mapbox/streets-v11',
         tileSize: 512,
@@ -92,8 +92,6 @@ export class AppComponent implements AfterViewInit {
       denver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.'),
       aurora = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.'),
       bonita = L.marker(this.center).bindPopup('This is Bonita Springs, Fl.');
-
-
 
     var grayScaleBaseMap = L.tileLayer(mbUrl, {
       id: 'mapbox/light-v9',
@@ -113,34 +111,40 @@ export class AppComponent implements AfterViewInit {
       'topoOverlayMap',
       L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
         layers: 'TOPO-OSM-WMS',
-        transparent : true,  
-        format: 'image/png'
+        transparent: true,
+        format: 'image/png',
       })
     );
 
     this.mm.set(
       'NOAA1',
-      L.tileLayer.wms(' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer', {
-        layers: '1',
-        opacity : 1,
-        transparent : true,  // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap! (try it by commenting out transparent or format of PNG).
-        format: 'image/png'
-      })
+      L.tileLayer.wms(
+        ' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer',
+        {
+          layers: '1',
+          opacity: 1,
+          transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
+          format: 'image/png',
+        }
+      )
     );
-
 
     //https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer
 
     var overlayMaps = {
       Cities: this.mm.get('cities'),
       Topo: this.mm.get('topoOverlayMap'),
-      NOAA1: this.mm.get('NOAA1')
+      NOAA1: this.mm.get('NOAA1'),
     };
 
     L.control.layers(baseMaps, overlayMaps).addTo(this.map);
   }
 
-  public showOverlay() {
+  /**
+   * The difference here is it is an overlay IMAGE, not a tiled overlay
+   * It calls imageOverlay
+   */
+  public showOverlayImage() {
     var overlayImageURL =
         'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Sydney_Opera_House_-_Dec_2008.jpg/1024px-Sydney_Opera_House_-_Dec_2008.jpg',
       imageBounds = [this.center, [-35.865, 154.2094]];
