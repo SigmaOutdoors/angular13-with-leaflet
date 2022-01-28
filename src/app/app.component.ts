@@ -29,8 +29,8 @@ import { environment } from '../environments/environment';
 export class AppComponent implements AfterViewInit {
   map: any;
 
-  lat = 26;
-  lng = -81;
+  lat = 26.3398;
+  lng = -81.7787;
   center = L.latLng(this.lat, this.lng); // [this.lat, this.lng];
   
   overlayCollection = [];
