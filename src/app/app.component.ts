@@ -64,11 +64,20 @@ export class AppComponent implements AfterViewInit {
 
   private loadMap(): void {
     this.map = L.map('map').setView([0, 0], 1);
+
+
+    var mbAttr =
+      'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
+
+      var mbUrl =
+      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+
+   //  var mbUrl =     'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
+
     var streetsBaseMap = L.tileLayer(
       'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
       {
-        attribution:
-          'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        attribution:mbAttr,
         maxZoom: 18,
         id: 'mapbox/streets-v11',
         tileSize: 512,
@@ -82,12 +91,9 @@ export class AppComponent implements AfterViewInit {
       ),
       denver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.'),
       aurora = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.'),
-      golden = L.marker([39.77, -105.23]).bindPopup('This is Golden, CO.');
+      bonita = L.marker(this.center).bindPopup('This is Bonita Springs, Fl.');
 
-    var mbAttr =
-      'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
-    var mbUrl =
-      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+
 
     var grayScaleBaseMap = L.tileLayer(mbUrl, {
       id: 'mapbox/light-v9',
@@ -96,7 +102,7 @@ export class AppComponent implements AfterViewInit {
       attribution: mbAttr,
     });
 
-    this.mm.set('cities', L.layerGroup([littleton, denver, aurora, golden]));
+    this.mm.set('cities', L.layerGroup([littleton, denver, aurora, bonita]));
 
     var baseMaps = {
       Grayscale: grayScaleBaseMap,
@@ -107,12 +113,28 @@ export class AppComponent implements AfterViewInit {
       'topoOverlayMap',
       L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
         layers: 'TOPO-OSM-WMS',
+        transparent : true,  
+        format: 'image/png'
       })
     );
+
+    this.mm.set(
+      'NOAA1',
+      L.tileLayer.wms(' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer', {
+        layers: '1',
+        opacity : 1,
+        transparent : true,  // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap! (try it by commenting out transparent or format of PNG).
+        format: 'image/png'
+      })
+    );
+
+
+    //https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer
 
     var overlayMaps = {
       Cities: this.mm.get('cities'),
       Topo: this.mm.get('topoOverlayMap'),
+      NOAA1: this.mm.get('NOAA1')
     };
 
     L.control.layers(baseMaps, overlayMaps).addTo(this.map);
