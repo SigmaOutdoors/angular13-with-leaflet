@@ -2,9 +2,16 @@
   <h1>Angular 13+ with Leaflet</h1>
 
   <div id="map"></div>
-  <button (click)="showMarker()">Fly To Marker</button>
+  <button (click)="flyToMarker()">Fly To Marker</button>
   <button (click)="showOverlayImage()">Overlay</button>
-  <button (click)="dump(false)">Dump</button>
-  <button (click)="dump(true)">Reset Layers</button>
+  <button (click)="dumpMapCollectionAndRemoveLayers(false)">Dump</button>
+  <button (click)="dumpMapCollectionAndRemoveLayers(true)">Reset Layers</button>
   <button (click)="activeLayers()">Active Layers</button>
+  <button (click)="newLayerControl()">Alt Layer Control</button>
+  
+
+  <app-custom-leaflet-control
+  [map]='map'
+></app-custom-leaflet-control>
+
 </div>

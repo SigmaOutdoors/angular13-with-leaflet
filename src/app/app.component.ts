@@ -1,17 +1,8 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { Observable, Subscriber } from 'rxjs';
 import * as L from 'leaflet';
-import {
-  bounds,
-  LatLng,
-  LatLngBoundsExpression,
-  LatLngExpression,
-  Layer,
-  LeafletMouseEvent,
-  Marker,
-  TileErrorEvent,
-  WMSOptions,
-} from 'leaflet';
+
+
 
 import { environment } from '../environments/environment';
 
@@ -27,15 +18,19 @@ import { environment } from '../environments/environment';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements AfterViewInit {
-  map: any;
+  map: L.Map;
 
   lat = 26.3398;
   lng = -81.7787;
   center = L.latLng(this.lat, this.lng); // [this.lat, this.lng];
   
   overlayCollection = [];
-  
+  overlayMaps : L.Control.LayersObject ;
+  overlayMapsAlternateOrder : L.Control.LayersObject ;
   mapCollection = new Map();
+  baseMaps;
+  layerControl;
+  position: L.ControlPosition = "bottomleft" ;
 
   constructor() {}
 
@@ -43,6 +38,9 @@ export class AppComponent implements AfterViewInit {
     this.loadMap();
   }
 
+  /**
+   * Not used ATM, but kept for informational purposes.
+   */
   private getCurrentPosition(): any {
     return new Observable((observer: Subscriber<any>) => {
       if (navigator.geolocation) {
@@ -59,7 +57,10 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
-  public showMarker() {
+  /**
+   * Fly to a marker on the map
+   */
+  public flyToMarker() {
     this.map.flyTo(this.center, 13);
 
     const icon = L.icon({
@@ -70,23 +71,20 @@ export class AppComponent implements AfterViewInit {
       popupAnchor: [13, 0],
     });
 
-    const marker = L.marker(this.center, { icon }).bindPopup('Angular Leaflet');
+    const marker = L.marker(this.center, { icon }).bindPopup('Sunny Bonita Springs');
     marker.addTo(this.map);
+  
   }
 
   private loadMap(): void {
-    this.map = L.map('map').setView([0, 0], 1);
+    this.map = L.map('map').setView(this.center, 4);
 
     var mbAttr =
       'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
-
-    var mbUrl =
-      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
-
-    //  var mbUrl =     'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
+    var mbUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + environment.mapbox.accessToken;
 
     var streetsBaseMap = L.tileLayer(
-      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+      mbUrl,
       {
         attribution: mbAttr,
         maxZoom: 18,
@@ -96,6 +94,8 @@ export class AppComponent implements AfterViewInit {
         accessToken: environment.mapbox.accessToken,
       }
     ).addTo(this.map);
+
+
 
     var littleton = L.marker([39.61, -105.02]).bindPopup(
         'This is Littleton, CO.'
@@ -113,7 +113,7 @@ export class AppComponent implements AfterViewInit {
 
     this.mapCollection.set('cities', L.layerGroup([littleton, denver, aurora, bonita]));
 
-    var baseMaps = {
+    this.baseMaps = {
       Grayscale: grayScaleBaseMap,
       Streets: streetsBaseMap,
     };
@@ -123,6 +123,17 @@ export class AppComponent implements AfterViewInit {
       L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
         layers: 'TOPO-OSM-WMS',
         transparent: true,
+        opacity : 1,
+       // format: 'image/png',
+      })
+    );
+
+    this.mapCollection.set(
+      'topoOverlayMappt4',
+      L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
+        layers: 'TOPO-OSM-WMS',
+        transparent: true,
+        opacity : .4,
         format: 'image/png',
       })
     );
@@ -144,7 +155,7 @@ export class AppComponent implements AfterViewInit {
     this.mapCollection.set(
       'Cables',
       L.tileLayer.wms(
-        ' https://overwatch.net:5501/geoserver/wms',
+        '',
         {
           layers: 'vector_workspace:fiber_optic_cables',
           opacity: 1,
@@ -158,14 +169,33 @@ export class AppComponent implements AfterViewInit {
 
     //https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer
 
-    var overlayMaps = {
+    this.overlayMaps = {
       Cities: this.mapCollection.get('cities'),
-      Topo: this.mapCollection.get('topoOverlayMap'),
+      'Cables First': this.mapCollection.get('Cables'),
+      'Topo (Opacity 1)': this.mapCollection.get('topoOverlayMap'),
+      'Topo (Opacity .4)': this.mapCollection.get('topoOverlayMappt4'),
       NOAA1: this.mapCollection.get('NOAA1'),
-      Cables: this.mapCollection.get('Cables'),
+      
     };
 
-     L.control.layers(baseMaps, overlayMaps).addTo(this.map);
+    this.overlayMapsAlternateOrder = {
+      Cities: this.mapCollection.get('cities'),     
+      'Topo (Opacity 1)': this.mapCollection.get('topoOverlayMap'),
+      'Topo (Opacity.4)': this.mapCollection.get('topoOverlayMappt4'),
+      'Cables 2nd': this.mapCollection.get('Cables'),
+      NOAA1: this.mapCollection.get('NOAA1')
+      
+    };
+
+     // You could do base and layer separate
+     // L.control.layers(this.baseMaps, null).addTo(this.map);
+     // this.layerControl = L.control.layers(null, this.overlayMaps).addTo(this.map);
+     // Or add them both to same control 
+     this.layerControl = L.control.layers(this.baseMaps, this.overlayMaps).addTo(this.map);
+
+    
+
+    // L.control.layers(this.baseMaps, this.overlayMaps).addTo(this.map);
   }
 
   /**
@@ -217,7 +247,10 @@ export class AppComponent implements AfterViewInit {
     return false;
   }
 
-  public dump(removeLayers = true) {
+  /**
+   * Remove layers by default 
+   */
+  public dumpMapCollectionAndRemoveLayers(removeLayers = true) {
 
     for (let [key, value] of this.mapCollection) {
       console.log(key);
@@ -226,4 +259,21 @@ export class AppComponent implements AfterViewInit {
           this.map.removeLayer(value);
     }
   }
+
+
+  /**
+   * This just swaps out the orginal control for my #2 control with a different order.
+   */
+  public newLayerControl()
+  {
+
+   this.map.removeControl(this.layerControl);
+   this.dumpMapCollectionAndRemoveLayers(true);
+   this.layerControl = L.control.layers(this.baseMaps, this.overlayMapsAlternateOrder).addTo(this.map);
+   
+  }
+
+
+
+
 }
