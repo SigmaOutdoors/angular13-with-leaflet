@@ -8,10 +8,11 @@
   <button (click)="dumpMapCollectionAndRemoveLayers(true)">Reset Layers</button>
   <button (click)="activeLayers()">Active Layers</button>
   <button (click)="newLayerControl()">Alt Layer Control</button>
-  
-
+  <br>
+  <br>
+  <span class='message'>{{message}}</span>
   <app-custom-leaflet-control
-  [map]='map'
+  [map]='map' [mapCollection]='mapCollection'
 ></app-custom-leaflet-control>
 
 </div>

@@ -7,6 +7,15 @@ import * as L from 'leaflet';
 import { environment } from '../environments/environment';
 
 /**
+ * DESC:
+ * The initial reason I wrote this code it to figure out how to present WMS layers (not overlay image layers)
+ * on a leaflet map and have the ORDERS of those layers (z-index if you will) be different from the presented
+ * order in the GUI.  ASAIK, the order they appear (z-index) is the order they get created in with the 
+ * LAST being the TOPMOST layer. So maybe you want something more imporant in ORDER being
+ * HIGHER on the presentation list?  How does that happen?  Well this project was an 
+ * experiment in that. 
+ * 
+ * MISC: 
  * Took out the code to get your location and hard-coded a lat/long
  * Made the fly to marker code independent of load so map isn't constantly
  * flying to a location as you type in stackblitz
@@ -23,7 +32,7 @@ export class AppComponent implements AfterViewInit {
   lat = 26.3398;
   lng = -81.7787;
   center = L.latLng(this.lat, this.lng); // [this.lat, this.lng];
-  
+  message = "";
   overlayCollection = [];
   overlayMaps : L.Control.LayersObject ;
   overlayMapsAlternateOrder : L.Control.LayersObject ;
@@ -155,7 +164,7 @@ export class AppComponent implements AfterViewInit {
     this.mapCollection.set(
       'Cables',
       L.tileLayer.wms(
-        '',
+        'https://coverwatch.gsalacia.net:5501/geoserver/wms',
         {
           layers: 'vector_workspace:fiber_optic_cables',
           opacity: 1,
@@ -191,11 +200,19 @@ export class AppComponent implements AfterViewInit {
      // L.control.layers(this.baseMaps, null).addTo(this.map);
      // this.layerControl = L.control.layers(null, this.overlayMaps).addTo(this.map);
      // Or add them both to same control 
-     this.layerControl = L.control.layers(this.baseMaps, this.overlayMaps).addTo(this.map);
 
-    
 
-    // L.control.layers(this.baseMaps, this.overlayMaps).addTo(this.map);
+     /**
+      * You want to disable this control to effectively use the Custom Control.
+      */
+
+     let enableStandardLayerGroupControl = false;
+     if (enableStandardLayerGroupControl) {
+        this.message = "With the default layer control enabled, the custom layer control will not work as expected, to demo custom control properly, disable the default control in code."
+        this.layerControl = L.control.layers(this.baseMaps, this.overlayMaps).addTo(this.map);
+     }
+
+  
   }
 
   /**
