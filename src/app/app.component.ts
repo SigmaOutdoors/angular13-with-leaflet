@@ -34,16 +34,27 @@ export class AppComponent implements AfterViewInit {
   center = L.latLng(this.lat, this.lng); // [this.lat, this.lng];
   message = "";
   overlayCollection = [];
-  overlayMaps : L.Control.LayersObject ;
-  overlayMapsAlternateOrder : L.Control.LayersObject ;
+  builtInLayerGroupControlOrder : L.Control.LayersObject ;
+  builtInLayerGroupControlOrderAlt : L.Control.LayersObject ;
+  customOverlayOrder = [];
   mapCollection = new Map();
   baseMaps;
   layerControl;
+  streetsBaseMap;
   position: L.ControlPosition = "bottomleft" ;
+  mbAttr =
+  'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
+  mbUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + environment.mapbox.accessToken;
 
-  constructor() {}
+
+  constructor() {
+    
+
+
+  }
 
   public ngAfterViewInit(): void {
+    this.createLayerCollectionInOrder();
     this.loadMap();
   }
 
@@ -88,14 +99,11 @@ export class AppComponent implements AfterViewInit {
   private loadMap(): void {
     this.map = L.map('map').setView(this.center, 4);
 
-    var mbAttr =
-      'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
-    var mbUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + environment.mapbox.accessToken;
-
-    var streetsBaseMap = L.tileLayer(
-      mbUrl,
+   
+    this.streetsBaseMap = L.tileLayer(
+      this.mbUrl,
       {
-        attribution: mbAttr,
+        attribution: this.mbAttr,
         maxZoom: 18,
         id: 'mapbox/streets-v11',
         tileSize: 512,
@@ -104,31 +112,42 @@ export class AppComponent implements AfterViewInit {
       }
     ).addTo(this.map);
 
+    
 
+    /**
+    * You want to disable the DEFAULT LAYER GROUP control to effectively use the Custom Control.
+    */
+    let enableStandardLayerGroupControl = false;
+     if (enableStandardLayerGroupControl) {
+        this.message = "With the default layer control enabled, the custom layer control will not work as expected, to demo custom control properly, disable the default control in code."
+        this.createDefaultLayerControl();
+     }
 
-    var littleton = L.marker([39.61, -105.02]).bindPopup(
-        'This is Littleton, CO.'
-      ),
-      denver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.'),
-      aurora = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.'),
-      bonita = L.marker(this.center).bindPopup('This is Bonita Springs, Fl.');
+  }
 
-    var grayScaleBaseMap = L.tileLayer(mbUrl, {
-      id: 'mapbox/light-v9',
-      tileSize: 512,
-      zoomOffset: -1,
-      attribution: mbAttr,
-    });
+  public createLayerCollectionInOrder()
+  {
 
-    this.mapCollection.set('cities', L.layerGroup([littleton, denver, aurora, bonita]));
+/*** IF YOU MOVE NOAA HERE IN THE REAL ORDER Topo (Opacity 1) will completely cover it!!!
 
-    this.baseMaps = {
-      Grayscale: grayScaleBaseMap,
-      Streets: streetsBaseMap,
-    };
 
     this.mapCollection.set(
-      'topoOverlayMap',
+      'NOAA1',
+      L.tileLayer.wms(
+        ' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer',
+        {
+          layers: '1',
+          opacity: 1,
+          transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
+          format: 'image/png',
+        }
+      )
+    );
+
+    */
+
+    this.mapCollection.set(
+      'Topo (Opacity 1)',
       L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
         layers: 'TOPO-OSM-WMS',
         transparent: true,
@@ -138,7 +157,7 @@ export class AppComponent implements AfterViewInit {
     );
 
     this.mapCollection.set(
-      'topoOverlayMappt4',
+      'Topo (Opacity .4)',
       L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
         layers: 'TOPO-OSM-WMS',
         transparent: true,
@@ -147,7 +166,8 @@ export class AppComponent implements AfterViewInit {
       })
     );
 
-    this.mapCollection.set(
+ // If this isn't AFTER Topo (Opacity 1), it will get covered by it.
+ this.mapCollection.set(
       'NOAA1',
       L.tileLayer.wms(
         ' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer',
@@ -164,53 +184,113 @@ export class AppComponent implements AfterViewInit {
     this.mapCollection.set(
       'Cables',
       L.tileLayer.wms(
-        'https://coverwatch.gsalacia.net:5501/geoserver/wms',
+        '',
         {
           layers: 'vector_workspace:fiber_optic_cables',
           opacity: 1,
           transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
           format: 'image/png',
         }
+
       )
     );
+
+
+    this.customOverlayOrder = [    {
+      title: 'Cables',
+      checked: false,
+    },
+    {
+      title: 'NOAA1',
+      checked: false,
+    },
+    {
+      title: 'Topo (Opacity 1)',
+      checked: false,
+    },
+    {
+      title: 'Topo (Opacity .4)',
+      checked: false,
+    }
+
+
+  
+  ];
+
+
+
+  }
+
+
+  public createDefaultLayerControl() {
+
+    var littleton = L.marker([39.61, -105.02]).bindPopup(
+        'This is Littleton, CO.'
+      ),
+      denver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.'),
+      aurora = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.'),
+      bonita = L.marker(this.center).bindPopup('This is Bonita Springs, Fl.');
+
+    var grayScaleBaseMap = L.tileLayer(this.mbUrl, {
+      id: 'mapbox/light-v9',
+      tileSize: 512,
+      zoomOffset: -1,
+      attribution: this.mbAttr,
+    });
+
+    this.mapCollection.set('cities', L.layerGroup([littleton, denver, aurora, bonita]));
+
+    this.baseMaps = {
+      Grayscale: grayScaleBaseMap,
+      Streets: this.streetsBaseMap,
+    };
+
 
 
 
     //https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer
 
-    this.overlayMaps = {
+    // In this case Topo (Opacity 1) will completely cover NOAA1
+    this.builtInLayerGroupControlOrder = {
       Cities: this.mapCollection.get('cities'),
       'Cables First': this.mapCollection.get('Cables'),
-      'Topo (Opacity 1)': this.mapCollection.get('topoOverlayMap'),
-      'Topo (Opacity .4)': this.mapCollection.get('topoOverlayMappt4'),
       NOAA1: this.mapCollection.get('NOAA1'),
+      'Topo (Opacity 1)': this.mapCollection.get('Topo (Opacity 1)'),
+      'Topo (Opacity .4)': this.mapCollection.get('Topo (Opacity .4)'),
+     
       
     };
 
-    this.overlayMapsAlternateOrder = {
+    
+   // an alternate order to test with and show what happens 
+   // In this case Topo (Opacity 1) will be "under" NOAA1
+   this.builtInLayerGroupControlOrderAlt = {
       Cities: this.mapCollection.get('cities'),     
-      'Topo (Opacity 1)': this.mapCollection.get('topoOverlayMap'),
-      'Topo (Opacity.4)': this.mapCollection.get('topoOverlayMappt4'),
+      'Topo (Opacity 1)': this.mapCollection.get('Topo (Opacity 1)'),
+      'Topo (Opacity.4)': this.mapCollection.get('Topo (Opacity .4)'),
       'Cables 2nd': this.mapCollection.get('Cables'),
       NOAA1: this.mapCollection.get('NOAA1')
       
-    };
+    }; 
 
      // You could do base and layer separate
      // L.control.layers(this.baseMaps, null).addTo(this.map);
      // this.layerControl = L.control.layers(null, this.overlayMaps).addTo(this.map);
      // Or add them both to same control 
 
+     this.layerControl = L.control.layers(this.baseMaps, this.builtInLayerGroupControlOrder).addTo(this.map);
 
      /**
       * You want to disable this control to effectively use the Custom Control.
-      */
+     
 
      let enableStandardLayerGroupControl = false;
      if (enableStandardLayerGroupControl) {
         this.message = "With the default layer control enabled, the custom layer control will not work as expected, to demo custom control properly, disable the default control in code."
         this.layerControl = L.control.layers(this.baseMaps, this.overlayMaps).addTo(this.map);
      }
+     
+ */
 
   
   }
@@ -286,7 +366,7 @@ export class AppComponent implements AfterViewInit {
 
    this.map.removeControl(this.layerControl);
    this.dumpMapCollectionAndRemoveLayers(true);
-   this.layerControl = L.control.layers(this.baseMaps, this.overlayMapsAlternateOrder).addTo(this.map);
+   this.layerControl = L.control.layers(this.baseMaps, this.builtInLayerGroupControlOrderAlt).addTo(this.map);
    
   }
 

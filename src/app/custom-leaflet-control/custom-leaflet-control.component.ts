@@ -14,14 +14,18 @@ export class CustomLeafletControlComponent implements OnInit {
   private _map: L.Map;
   public custom: L.Control;
 
-  @Input() position: L.ControlPosition = 'bottomleft' ;
-  @Input() mapCollection ;
+  position: L.ControlPosition = 'bottomleft' ;
+  @Input() mapCollection;
+  @Input() customOverlayOrder;
 
+  
   constructor(private http: HttpClient, private changeDetector: ChangeDetectorRef) { 
+    
   }
 
   ngOnInit() {
-    
+
+    //console.log(this.mm)
   }
 
   @Input() set map(map: L.Map){
@@ -57,34 +61,46 @@ export class CustomLeafletControlComponent implements OnInit {
     return this._map;
   }
 
-/**
- * In order for this to work we need to REMOVE the built in layers control 
- * once the default layer is added to the map the order is forever "written" since we are
- * using the same Map Collection for our layers , so if the default control exists "that order will prevail"
- * If we disable the default control, the WE control the order or appearance AND z-index
- */
-public initLayers() {
-  // REMEMBER THE LAST LAYER DOWN IS TOP-MOST LAYER!
-  let cablesOnTop = false;
-
-  if (cablesOnTop) {
-
-    this._map.addLayer(this.mapCollection.get('topoOverlayMap'))
-    this._map.removeLayer(this.mapCollection.get('topoOverlayMap'))
-
-    this._map.addLayer(this.mapCollection.get('Cables'))  
-    this._map.removeLayer(this.mapCollection.get('Cables')) 
-
-  }
-  else {
-    this._map.addLayer(this.mapCollection.get('Cables'))  
-    this._map.removeLayer(this.mapCollection.get('Cables')) 
-    
-    this._map.addLayer(this.mapCollection.get('topoOverlayMap'))
-    this._map.removeLayer(this.mapCollection.get('topoOverlayMap'))
+  /**
+   * So we need to go thorough the mapCollection WHICH defines the order of the layers (z-index)
+   * and look to the display order for whether it is checked.  This allows us to keep our
+   * order with the underlying mapCollection, but give the appearance the way our users may want
+   * to see the order.
+   */
+  public onCheckboxChanged(ee)
+  {
+    this.dumpMapCollectionAndRemoveLayers();
+   
+    for (let [key, value] of this.mapCollection) {
+      let layerFound = this.customOverlayOrder.find(item => item.title == key);  // we can use find, will only be one match
+  
+      if (layerFound.checked ) {  
+          console.log (layerFound.title + ":" + layerFound.checked )
+          this._map.addLayer(this.mapCollection.get(layerFound.title))  
+        
+      }
+    } 
   }
 
+
+
+get getChecked() {
+  return this.customOverlayOrder.filter(item => item.checked);
 }
+
+  /**
+   * Remove layers by default 
+   */
+   public dumpMapCollectionAndRemoveLayers(removeLayers = true) {
+
+    for (let [key, value] of this.mapCollection) {
+      //console.log(key);
+     // console.log(value)
+      if (removeLayers)
+          this.map.removeLayer(value);
+    }
+  }
+
 
 public myButton(layerAsString)
 {
