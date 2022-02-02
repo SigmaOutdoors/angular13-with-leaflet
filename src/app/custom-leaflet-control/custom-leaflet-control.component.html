@@ -11,14 +11,14 @@
 
 
 <div *ngFor="let clo of customOverlayOrder">
-<input type="checkbox" [(ngModel)]="clo.checked" (change)="onCheckboxChanged($event)"> {{clo.title}}
+<input type="checkbox" [(ngModel)]="clo.checked" (change)="onCheckboxChanged($event,clo)"> {{clo.title}}
 </div>
 
 
 <br>
-<b>Actual Layer Order</b> last is TOPMOST
-<div *ngFor="let mc of mapCollection.keys()">
-<li>{{mc}}</li>
+<b>Actual Layer Order</b> LAST is on TOP!
+<div *ngFor="let mck of mapCollectionKeys">
+<li>{{mck}}</li>
 </div>
 
 

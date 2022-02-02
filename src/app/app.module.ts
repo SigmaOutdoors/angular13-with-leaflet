@@ -10,6 +10,7 @@ import { AppRoutingModule } from './app-routing.module';
 
 // Components
 import { AppComponent } from './app.component';
+import { HelperService } from './helper.service';
 
 @NgModule({
   imports: [
@@ -26,6 +27,7 @@ import { AppComponent } from './app.component';
   bootstrap: [
     AppComponent,
   ],
+  providers: [HelperService]
 })
 export class AppModule {
 }

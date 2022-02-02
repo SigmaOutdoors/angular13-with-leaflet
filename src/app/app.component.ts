@@ -5,6 +5,7 @@ import * as L from 'leaflet';
 
 
 import { environment } from '../environments/environment';
+import { HelperService } from './helper.service';
 
 /**
  * DESC:
@@ -37,7 +38,7 @@ export class AppComponent implements AfterViewInit {
   builtInLayerGroupControlOrder : L.Control.LayersObject ;
   builtInLayerGroupControlOrderAlt : L.Control.LayersObject ;
   customOverlayOrder = [];
-  mapCollection = new Map();
+  mapCollection; //  = new Map();
   baseMaps;
   layerControl;
   streetsBaseMap;
@@ -47,16 +48,22 @@ export class AppComponent implements AfterViewInit {
   mbUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + environment.mapbox.accessToken;
 
 
-  constructor() {
+  constructor(private helperService : HelperService) {
     
 
 
   }
 
   public ngAfterViewInit(): void {
-  
+
+    // Go get the collection data (the real order of the layers from serivce)
+    this.helperService.getMapData().subscribe( r => {
+        this.mapCollection = r;
+    });
+
+    this.createCustomLayerOrder();
     this.loadMap();
-    this.createLayerCollectionInOrder();
+   
     setTimeout(() => {
      
     }, 3000);
@@ -130,75 +137,8 @@ export class AppComponent implements AfterViewInit {
 
   }
 
-  public createLayerCollectionInOrder()
+  public createCustomLayerOrder()
   {
-
-/*** IF YOU MOVE NOAA HERE IN THE REAL ORDER Topo (Opacity 1) will completely cover it!!!
-
-
-    this.mapCollection.set(
-      'NOAA1',
-      L.tileLayer.wms(
-        ' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer',
-        {
-          layers: '1',
-          opacity: 1,
-          transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
-          format: 'image/png',
-        }
-      )
-    );
-
-    */
-
-    this.mapCollection.set(
-      'Topo (Opacity 1)',
-      L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
-        layers: 'TOPO-OSM-WMS',
-        transparent: true,
-        opacity : 1,
-       // format: 'image/png',
-      })
-    );
-
-    this.mapCollection.set(
-      'Topo (Opacity .4)',
-      L.tileLayer.wms('http://ows.mundialis.de/services/service?', {
-        layers: 'TOPO-OSM-WMS',
-        transparent: true,
-        opacity : .4,
-        format: 'image/png',
-      })
-    );
-
- // If this isn't AFTER Topo (Opacity 1), it will get covered by it.
- this.mapCollection.set(
-      'NOAA1',
-      L.tileLayer.wms(
-        ' https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer',
-        {
-          layers: '1',
-          opacity: 1,
-          transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
-          format: 'image/png',
-        }
-      )
-    );
-
-
-    this.mapCollection.set(
-      'Cables',
-      L.tileLayer.wms(
-        '',
-        {
-          layers: 'vector_workspace:fiber_optic_cables',
-          opacity: 1,
-          transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
-          format: 'image/png',
-        }
-
-      )
-    );
 
 
     this.customOverlayOrder = [    {
@@ -218,11 +158,7 @@ export class AppComponent implements AfterViewInit {
       checked: false,
     }
 
-
-  
   ];
-
-
 
   }
 
@@ -283,7 +219,7 @@ export class AppComponent implements AfterViewInit {
      // this.layerControl = L.control.layers(null, this.overlayMaps).addTo(this.map);
      // Or add them both to same control 
 
-     this.layerControl = L.control.layers(this.baseMaps, this.builtInLayerGroupControlOrder).addTo(this.map);
+     this.layerControl = L.control.layers(this.baseMaps, this.builtInLayerGroupControlOrderAlt).addTo(this.map);
 
      /**
       * You want to disable this control to effectively use the Custom Control.
