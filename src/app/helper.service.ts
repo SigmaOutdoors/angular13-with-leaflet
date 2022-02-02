@@ -70,7 +70,7 @@ export class HelperService {
     this.mapCollection.set(
       'Cables',
       L.tileLayer.wms(
-        'https://coverwatch.gsalacia.net:5501/geoserver/wms',
+        '',
         {
           layers: 'vector_workspace:fiber_optic_cables',
           opacity: 1,
