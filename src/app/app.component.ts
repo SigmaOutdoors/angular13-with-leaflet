@@ -54,8 +54,13 @@ export class AppComponent implements AfterViewInit {
   }
 
   public ngAfterViewInit(): void {
-    this.createLayerCollectionInOrder();
+  
     this.loadMap();
+    this.createLayerCollectionInOrder();
+    setTimeout(() => {
+     
+    }, 3000);
+
   }
 
   /**
