@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, Subscriber } from 'rxjs';
 import * as L from 'leaflet';
 
+
 @Injectable()
 export class HelperService {
  
@@ -38,6 +39,7 @@ export class HelperService {
         layers: 'TOPO-OSM-WMS',
         transparent: true,
         opacity : 1,
+        pane : 'LOWEST'
        // format: 'image/png',
       })
     );
@@ -49,6 +51,7 @@ export class HelperService {
         transparent: true,
         opacity : .4,
         format: 'image/png',
+        pane : 'MIDDLE1'
       })
     );
 
@@ -62,7 +65,8 @@ export class HelperService {
           opacity: 1,
           transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
           format: 'image/png',
-        }
+          pane : 'MIDDLE2'
+         }
       )
     );
 
@@ -76,6 +80,7 @@ export class HelperService {
           opacity: 1,
           transparent: true, // transparent and format of PNG HAND in HAND defaults to JPG so if you don't have this radar will cover basemap with white in the non radar sections! (try it by commenting out transparent or format of PNG).
           format: 'image/png',
+          pane : 'TOPMOST'
         }
 
       )

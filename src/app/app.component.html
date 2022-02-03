@@ -11,17 +11,11 @@
   <br>
   <br>
   <span class='message'>{{message}}</span>
-   
-      <app-custom-leaflet-control
+<span *ngIf="!enableStandardLayerGroupControl">   
+<app-custom-leaflet-control
   [map]='map'  [customOverlayOrder]='customOverlayOrder'
 ></app-custom-leaflet-control>
+</span>
 
-<!-- 
-        <app-custom-leaflet-control
-  [map]='map' [mapCollection]='mapCollection' [customOverlayOrder]='customOverlayOrder'
-></app-custom-leaflet-control>
--->
-
-  
 
 </div>

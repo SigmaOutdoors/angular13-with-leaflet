@@ -16,6 +16,11 @@ import { HelperService } from './helper.service';
  * HIGHER on the presentation list?  How does that happen?  Well this project was an 
  * experiment in that. 
  * 
+ * UPDATE!!!
+ * I ended up finding in discovery (mostly after the fact) that PANES can be used to achieve this.
+ * I am leaving this project HERE with the custom control  
+ * 
+ * 
  * MISC: 
  * Took out the code to get your location and hard-coded a lat/long
  * Made the fly to marker code independent of load so map isn't constantly
@@ -30,6 +35,15 @@ import { HelperService } from './helper.service';
 export class AppComponent implements AfterViewInit {
   map: L.Map;
 
+  /**
+   * 
+   * To see the custom leaflet control, set this to false
+   * 
+   */
+  enableStandardLayerGroupControl = true;
+
+
+
   lat = 26.3398;
   lng = -81.7787;
   center = L.latLng(this.lat, this.lng); // [this.lat, this.lng];
@@ -43,6 +57,10 @@ export class AppComponent implements AfterViewInit {
   layerControl;
   streetsBaseMap;
   position: L.ControlPosition = "bottomleft" ;
+
+ 
+
+
   mbAttr =
   'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
   mbUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + environment.mapbox.accessToken;
@@ -70,24 +88,7 @@ export class AppComponent implements AfterViewInit {
 
   }
 
-  /**
-   * Not used ATM, but kept for informational purposes.
-   */
-  private getCurrentPosition(): any {
-    return new Observable((observer: Subscriber<any>) => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position: any) => {
-          observer.next({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-          observer.complete();
-        });
-      } else {
-        observer.error();
-      }
-    });
-  }
+ 
 
   /**
    * Fly to a marker on the map
@@ -111,7 +112,35 @@ export class AppComponent implements AfterViewInit {
   private loadMap(): void {
     this.map = L.map('map').setView(this.center, 4);
 
-   
+
+    // UPDATE, I ended up finding out assigning panes to thw WMS layers
+    // with approriate z-Index will do the ordering you want on the default 
+    // control without having to force them into a particular order on the default
+    // Group Layer control.
+
+    // One thing I did find is that leaflet has other z-Index values for internal stuff
+    // so you want to start your PANE z-Indexes quite high > 1500 or so.
+
+    this.map.createPane('LOWEST');
+    this.map.getPane('LOWEST').style.zIndex = '2000';
+
+    // https://leafletjs.com/examples/map-panes/
+
+    this.map.createPane('MIDDLE1');
+    this.map.getPane('MIDDLE1').style.zIndex = '3100';
+
+    this.map.createPane('MIDDLE2');
+    this.map.getPane('MIDDLE2').style.zIndex = '3200';
+
+    this.map.createPane('MIDDLE3');
+    this.map.getPane('MIDDLE3').style.zIndex = '3300';
+
+    this.map.createPane('TOPMOST');
+    this.map.getPane('TOPMOST').style.zIndex = '9000';
+
+    this.map.createPane('TOPMOST1');
+    this.map.getPane('TOPMOST1').style.zIndex = '9500';
+
     this.streetsBaseMap = L.tileLayer(
       this.mbUrl,
       {
@@ -125,12 +154,11 @@ export class AppComponent implements AfterViewInit {
     ).addTo(this.map);
 
     
-
     /**
     * You want to disable the DEFAULT LAYER GROUP control to effectively use the Custom Control.
     */
-    let enableStandardLayerGroupControl = false;
-     if (enableStandardLayerGroupControl) {
+    
+     if (this.enableStandardLayerGroupControl) {
         this.message = "With the default layer control enabled, the custom layer control will not work as expected, to demo custom control properly, disable the default control in code."
         this.createDefaultLayerControl();
      }
@@ -165,12 +193,13 @@ export class AppComponent implements AfterViewInit {
 
   public createDefaultLayerControl() {
 
+    // 42.8973° N, 77.4214° W
     var littleton = L.marker([39.61, -105.02]).bindPopup(
         'This is Littleton, CO.'
       ),
-      denver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.'),
-      aurora = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.'),
-      bonita = L.marker(this.center).bindPopup('This is Bonita Springs, Fl.');
+      bloomfield = L.marker([42.8973, -77.4214], { pane: "TOPMOST1" }).bindPopup('This is Denver, CO.'),
+      aurora = L.marker([39.73, -104.8], { pane: "TOPMOST1" }).bindPopup('This is Aurora, CO.'),
+      bonita = L.marker(this.center,{ pane: "TOPMOST1" }).bindPopup('This is Bonita Springs, Fl.');
 
     var grayScaleBaseMap = L.tileLayer(this.mbUrl, {
       id: 'mapbox/light-v9',
@@ -179,15 +208,15 @@ export class AppComponent implements AfterViewInit {
       attribution: this.mbAttr,
     });
 
-    this.mapCollection.set('cities', L.layerGroup([littleton, denver, aurora, bonita]));
+    // !!!! DOESN'T SEEM TO WORK FOR cities even with pane option, gets covered by TOPO (Opacity 1)
+    // In order for this to work you need to do it at the MARKER level (see code above)
+    // This pane option is DOING NOTING 
+    this.mapCollection.set('cities', L.layerGroup([littleton, bloomfield, aurora, bonita], {  pane : 'TOPMOST1'}));
 
     this.baseMaps = {
       Grayscale: grayScaleBaseMap,
       Streets: this.streetsBaseMap,
     };
-
-
-
 
     //https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer
 
@@ -198,6 +227,7 @@ export class AppComponent implements AfterViewInit {
       NOAA1: this.mapCollection.get('NOAA1'),
       'Topo (Opacity 1)': this.mapCollection.get('Topo (Opacity 1)'),
       'Topo (Opacity .4)': this.mapCollection.get('Topo (Opacity .4)'),
+     
      
       
     };
@@ -219,25 +249,13 @@ export class AppComponent implements AfterViewInit {
      // this.layerControl = L.control.layers(null, this.overlayMaps).addTo(this.map);
      // Or add them both to same control 
 
-     this.layerControl = L.control.layers(this.baseMaps, this.builtInLayerGroupControlOrderAlt).addTo(this.map);
+     this.layerControl = L.control.layers(this.baseMaps, this.builtInLayerGroupControlOrder).addTo(this.map);
 
-     /**
-      * You want to disable this control to effectively use the Custom Control.
-     
-
-     let enableStandardLayerGroupControl = false;
-     if (enableStandardLayerGroupControl) {
-        this.message = "With the default layer control enabled, the custom layer control will not work as expected, to demo custom control properly, disable the default control in code."
-        this.layerControl = L.control.layers(this.baseMaps, this.overlayMaps).addTo(this.map);
-     }
-     
- */
-
-  
+       
   }
 
   /**
-   * The difference here is it is an overlay IMAGE, not a tiled overlay
+   * The difference here is it is an overlay IMAGE, not a tiled overlay (wms)
    * It calls imageOverlay
    */
   public showOverlayImage() {
@@ -311,6 +329,24 @@ export class AppComponent implements AfterViewInit {
    
   }
 
+   /**
+   * Not used ATM, but kept for informational purposes.
+   */
+    private getCurrentPosition(): any {
+      return new Observable((observer: Subscriber<any>) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position: any) => {
+            observer.next({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+            observer.complete();
+          });
+        } else {
+          observer.error();
+        }
+      });
+    }
 
 
 
