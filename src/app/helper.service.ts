@@ -74,7 +74,7 @@ export class HelperService {
     this.mapCollection.set(
       'Cables',
       L.tileLayer.wms(
-        '',
+        'https://overwatch.salacia.net:5511/geoserver/wms',
         {
           layers: 'vector_workspace:fiber_optic_cables',
           opacity: 1,
