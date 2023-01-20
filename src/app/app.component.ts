@@ -104,20 +104,36 @@ export class AppComponent implements AfterViewInit {
   //);
   private drawLinesAndPointsAsLayerGroup() {
 
-    var lg = L.layerGroup(); // .addTo(this.map);
+    var lineLayerGroup = L.layerGroup(); // .addTo(this.map);
     var destinations = [];
 
-    var line = L.polyline([]).addTo(lg);
+    var line = L.polyline([],{
+      color: 'green',
+      weight: 2,
+      smoothFactor: 1
+      }).addTo(lineLayerGroup);
+
+      var line2 = L.polyline([],{
+        color: 'red',
+        weight: 2,
+        smoothFactor: 1
+        });
+
     for (var row in data) {
       var marker = L.marker([data[row].latitude, data[row].longitude], { pane: 'TOPMOST1' }).addTo(
-        lg
+        lineLayerGroup
       );
       line.addLatLng(marker.getLatLng());
     }
 
+    line2.addLatLng([30.438256,-84.280733]);
+    line2.addLatLng([40.730610, -73.935242]);
+
+    line2.addTo(lineLayerGroup);
+
     this.mapCollection.set(
       'MarkersWithLines',
- lg
+ lineLayerGroup
       
     );
 
