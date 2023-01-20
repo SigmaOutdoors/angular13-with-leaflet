@@ -25,11 +25,23 @@ import { HelperService } from './helper.service';
  * flying to a location as you type in stackblitz
  */
 
-let data = [
+let data1 = [
   { latitude: 37.788022, longitude: -122.399797 },
   { latitude: 40.748817, longitude: -73.985428 },
   { latitude: 34.052235, longitude: -118.243683 },
 ];
+
+
+let data = [
+  {latitude: 40.730610, longitude: -73.935242},
+  {latitude: 41.878114, longitude: -87.629799},
+  {latitude: 39.952583, longitude: -75.165222},
+  {latitude: 42.331429, longitude: -83.045753},
+  {latitude: 43.038902, longitude: -87.906474},
+  {latitude: 35.227087, longitude: -80.843127},
+  {latitude: 30.438256, longitude: -84.280733}
+  ];
+
 
 @Component({
   selector: 'app-root',
@@ -104,7 +116,7 @@ export class AppComponent implements AfterViewInit {
     }
 
     this.mapCollection.set(
-      'lax',
+      'MarkersWithLines',
  lg
       
     );
@@ -267,7 +279,7 @@ export class AppComponent implements AfterViewInit {
       NOAA1: this.mapCollection.get('NOAA1'),
       'Topo (Opacity 1)': this.mapCollection.get('Topo (Opacity 1)'),
       'Topo (Opacity .4)': this.mapCollection.get('Topo (Opacity .4)'),
-      'lax': this.mapCollection.get('lax'),
+      'MarkersWithLines': this.mapCollection.get('MarkersWithLines')
     };
 
     // an alternate order to test with and show what happens
@@ -278,6 +290,7 @@ export class AppComponent implements AfterViewInit {
       'Topo (Opacity.4)': this.mapCollection.get('Topo (Opacity .4)'),
       'Cables 2nd': this.mapCollection.get('Cables'),
       NOAA1: this.mapCollection.get('NOAA1'),
+      'MarkersWithLines': this.mapCollection.get('MarkersWithLines'),
     };
 
     // You could do base and layer separate

@@ -1,7 +1,7 @@
 <div class="container-fluid py-3">
-  <h1>Angular 13+ with Leaflet</h1>
-
-  <div id="map"></div>
+  <h1>Angular 15+ with Leaflet</h1>
+  <p>@types/leaflet and leaflet are installed packages. leaflet css in index.html</p>
+  <div style='width:1000px;height:63.6vh;' id="map"></div>
   <button (click)="flyToMarker()">Fly To Marker</button>
   <button (click)="showOverlayImage()">Overlay</button>
   <button (click)="dumpMapCollectionAndRemoveLayers(false)">Dump</button>
@@ -19,3 +19,11 @@
 
 
 </div>
+
+<!--
+   position: absolute;top: 0; bottom: 0; width: 100%;
+
+    <div style='width:1000px;height:63.6vh;' id="map"></div>
+
+     <div style='position: absolute;top: 0; bottom: 0; width: 100%;' id="map"></div>
+-->
