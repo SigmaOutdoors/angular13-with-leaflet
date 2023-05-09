@@ -1,0 +1,62 @@
+#map {
+  height: 500px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.message {
+  color : red;
+  font-weight: bold;
+}
+
+.container {
+  display: flex;
+  position: relative;
+}
+
+
+.handle {
+  width: 5px;
+  cursor: col-resize;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 200px;
+  z-index: 1;
+  background-color: #ccc;
+  resize: horizontal;
+}
+
+.handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 20px;
+  background-color: #666;
+}
+.left {
+  width: 200px;
+}
+
+.right {
+  flex: 1;
+  //position: relative;
+}
+
+.toggle-button {
+
+  transform: translate(10px,90px);
+  position: absolute !important;;
+  z-index: 11111
+}
+
+
+
+.container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}

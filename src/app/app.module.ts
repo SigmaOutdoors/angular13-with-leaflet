@@ -11,6 +11,7 @@ import { AppRoutingModule } from './app-routing.module';
 // Components
 import { AppComponent } from './app.component';
 import { HelperService } from './helper.service';
+import { MapNavComponent } from './map-nav/map-nav.component';
 
 @NgModule({
   imports: [
@@ -22,7 +23,8 @@ import { HelperService } from './helper.service';
   ],
   declarations: [
     AppComponent,
-    CustomLeafletControlComponent
+    CustomLeafletControlComponent,
+    MapNavComponent
   ],
   bootstrap: [
     AppComponent,

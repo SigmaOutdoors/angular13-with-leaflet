@@ -46,10 +46,27 @@ let data = [
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements AfterViewInit {
   map: L.Map;
+
+
+  public isLeftVisible = true;
+  public leftWidth = '200px';
+  public btnText = "Close";
+
+  public toggleLeft() {
+    this.isLeftVisible = !this.isLeftVisible;
+    if (this.isLeftVisible)
+    {
+      this.btnText = 'Close'; 
+    }
+    else
+       this.btnText = 'Open';
+    this.leftWidth = this.isLeftVisible ? '200px' : '0';
+  }
+
 
   /**
    *
