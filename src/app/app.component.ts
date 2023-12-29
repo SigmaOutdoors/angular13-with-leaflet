@@ -31,17 +31,15 @@ let data1 = [
   { latitude: 34.052235, longitude: -118.243683 },
 ];
 
-
 let data = [
-  {latitude: 40.730610, longitude: -73.935242},
-  {latitude: 41.878114, longitude: -87.629799},
-  {latitude: 39.952583, longitude: -75.165222},
-  {latitude: 42.331429, longitude: -83.045753},
-  {latitude: 43.038902, longitude: -87.906474},
-  {latitude: 35.227087, longitude: -80.843127},
-  {latitude: 30.438256, longitude: -84.280733}
-  ];
-
+  { latitude: 40.73061, longitude: -73.935242 },
+  { latitude: 41.878114, longitude: -87.629799 },
+  { latitude: 39.952583, longitude: -75.165222 },
+  { latitude: 42.331429, longitude: -83.045753 },
+  { latitude: 43.038902, longitude: -87.906474 },
+  { latitude: 35.227087, longitude: -80.843127 },
+  { latitude: 30.438256, longitude: -84.280733 },
+];
 
 @Component({
   selector: 'app-root',
@@ -51,22 +49,17 @@ let data = [
 export class AppComponent implements AfterViewInit {
   map: L.Map;
 
-
   public isLeftVisible = true;
   public leftWidth = '200px';
-  public btnText = "Close";
+  public btnText = 'Close';
 
   public toggleLeft() {
     this.isLeftVisible = !this.isLeftVisible;
-    if (this.isLeftVisible)
-    {
-      this.btnText = 'Close'; 
-    }
-    else
-       this.btnText = 'Open';
+    if (this.isLeftVisible) {
+      this.btnText = 'Close';
+    } else this.btnText = 'Open';
     this.leftWidth = this.isLeftVisible ? '200px' : '0';
   }
-
 
   /**
    *
@@ -89,9 +82,11 @@ export class AppComponent implements AfterViewInit {
   streetsBaseMap;
   position: L.ControlPosition = 'bottomleft';
 
+  mbUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
   mbAttr =
     'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
-  mbUrl =
+  mbUrl2 =
     'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' +
     environment.mapbox.accessToken;
 
@@ -113,50 +108,68 @@ export class AppComponent implements AfterViewInit {
   }
 
 
+  public divAsLayer(bindToPane, divText, mapCollectionName) {
+    // Create a LayerGroup
+    var layerGroup = L.layerGroup();
+  
+
+    // Create a custom div with "Hello, World!" text
+    var customPopup = L.popup({
+      pane: bindToPane, // Assign the popup to the 'TOPMOST1' pane
+      closeButton: false // Optionally hide the close button
+    }).setContent(`<div>${divText}</div>`);
+  
+    // Add the custom popup to the LayerGroup
+    layerGroup.addLayer(customPopup);
+  
+ 
+  
+    // Calculate the fixed position for the popup
+    var mapContainer = this.map.getContainer();
+    var customPopupLocation = L.point(10, mapContainer.clientHeight - 10);
+  
+    // Bind the popup to the map container at the specified pixel position
+    customPopup.setLatLng(this.map.containerPointToLatLng(customPopupLocation));
+  
+    // Add the LayerGroup to the map
+    this.mapCollection.set(mapCollectionName, layerGroup);
+  }
+
   //     this.mapCollection.set(
-   // 'cities',
+  // 'cities',
   //  L.layerGroup([littleton, bloomfield, aurora, bonita], {
   //    pane: 'TOPMOST1',
   //  })
   //);
   private drawLinesAndPointsAsLayerGroup() {
-
     var lineLayerGroup = L.layerGroup(); // .addTo(this.map);
     var destinations = [];
 
-    var line = L.polyline([],{
+    var line = L.polyline([], {
       color: 'green',
       weight: 2,
-      smoothFactor: 1
-      }).addTo(lineLayerGroup);
+      smoothFactor: 1,
+    }).addTo(lineLayerGroup);
 
-      var line2 = L.polyline([],{
-        color: 'red',
-        weight: 2,
-        smoothFactor: 1
-        });
+    var line2 = L.polyline([], {
+      color: 'red',
+      weight: 2,
+      smoothFactor: 1,
+    });
 
     for (var row in data) {
-      var marker = L.marker([data[row].latitude, data[row].longitude], { pane: 'TOPMOST1' }).addTo(
-        lineLayerGroup
-      );
+      var marker = L.marker([data[row].latitude, data[row].longitude], {
+        pane: 'TOPMOST1',
+      }).addTo(lineLayerGroup);
       line.addLatLng(marker.getLatLng());
     }
 
-    line2.addLatLng([30.438256,-84.280733]);
-    line2.addLatLng([40.730610, -73.935242]);
+    line2.addLatLng([30.438256, -84.280733]);
+    line2.addLatLng([40.73061, -73.935242]);
 
     line2.addTo(lineLayerGroup);
 
-    this.mapCollection.set(
-      'MarkersWithLines',
- lineLayerGroup
-      
-    );
-
-
-
-
+    this.mapCollection.set('MarkersWithLines', lineLayerGroup);
   }
 
   public ngAfterViewInit(): void {
@@ -167,7 +180,7 @@ export class AppComponent implements AfterViewInit {
 
     this.createCustomLayerOrder();
     this.loadMap();
-   // this.drawLinesAndPointsAsFeatureGroup();
+    // this.drawLinesAndPointsAsFeatureGroup();
 
     setTimeout(() => {}, 3000);
   }
@@ -217,8 +230,12 @@ export class AppComponent implements AfterViewInit {
     this.map.createPane('MIDDLE3');
     this.map.getPane('MIDDLE3').style.zIndex = '3300';
 
+
     this.map.createPane('TOPMOST');
     this.map.getPane('TOPMOST').style.zIndex = '9000';
+
+    this.map.createPane('TOPMOST2');
+    this.map.getPane('TOPMOST2').style.zIndex = '9300';
 
     this.map.createPane('TOPMOST1');
     this.map.getPane('TOPMOST1').style.zIndex = '9500';
@@ -297,6 +314,8 @@ export class AppComponent implements AfterViewInit {
     );
 
     this.drawLinesAndPointsAsLayerGroup();
+    this.divAsLayer('TOPMOST',"Hello World I am on TOP",'PopUp');
+    this.divAsLayer('MIDDLE1',"I am another popup with a lower pane order",'PopUp2');
 
     this.baseMaps = {
       Grayscale: grayScaleBaseMap,
@@ -307,12 +326,16 @@ export class AppComponent implements AfterViewInit {
 
     // In this case Topo (Opacity 1) will completely cover NOAA1
     this.builtInLayerGroupControlOrder = {
+      PopUp : this.mapCollection.get('PopUp'),
+      PopUp2 : this.mapCollection.get('PopUp2'),
       Cities: this.mapCollection.get('cities'),
       'Cables First': this.mapCollection.get('Cables'),
       NOAA1: this.mapCollection.get('NOAA1'),
       'Topo (Opacity 1)': this.mapCollection.get('Topo (Opacity 1)'),
       'Topo (Opacity .4)': this.mapCollection.get('Topo (Opacity .4)'),
-      'MarkersWithLines': this.mapCollection.get('MarkersWithLines')
+      MarkersWithLines: this.mapCollection.get('MarkersWithLines'),
+     
+      
     };
 
     // an alternate order to test with and show what happens
@@ -323,7 +346,7 @@ export class AppComponent implements AfterViewInit {
       'Topo (Opacity.4)': this.mapCollection.get('Topo (Opacity .4)'),
       'Cables 2nd': this.mapCollection.get('Cables'),
       NOAA1: this.mapCollection.get('NOAA1'),
-      'MarkersWithLines': this.mapCollection.get('MarkersWithLines'),
+      MarkersWithLines: this.mapCollection.get('MarkersWithLines'),
     };
 
     // You could do base and layer separate
